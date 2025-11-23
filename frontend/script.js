@@ -105,13 +105,17 @@ if ("webkitSpeechRecognition" in window || "SpeechRecognition" in window) {
         }
     };
 } else {
-    alert("Please use Google Chrome or Edge.");
+    // Basic fallback for non-supported browsers
+    console.log("Speech recognition not supported");
 }
 
 // --- 3. BUTTON HANDLERS ---
 micBtn.addEventListener("click", (e) => {
     e.preventDefault();
-    if (!recognition) return;
+    if (!recognition) {
+        alert("Speech Recognition not supported on this browser. Try Chrome.");
+        return;
+    }
     if (isRecording) {
         stopAndSend();
     } else {
@@ -144,7 +148,20 @@ function stopAndSend() {
 // --- 4. SOS EMERGENCY SYSTEM ---
 function checkSOS(text) {
     const t = text.toLowerCase();
-    const triggers = ["numb arm", "chest pain", "heart attack", "stroke", "can't breathe", "collapse", "emergency"];
+    
+    const triggers = [
+        "chest pain", "pain in chest", "pain in my chest", "chest hurts",
+        "heart pain", "pain in heart", "pain in my heart", "heart hurts",
+        "heart attack", "cardiac",
+        "numb arm", "arm is numb", "left arm", 
+        "stroke", "face drooping", "slurred",
+        "seizure", "fit", "convulsion",
+        "can't breathe", "cant breathe", "trouble breathing", "choking",
+        "lung failure", "short of breath",
+        "collapse", "fainted", "blacked out", "unconscious",
+        "emergency", "sos", "help me", "dying"
+    ];
+
     return triggers.some(trigger => t.includes(trigger));
 }
 
@@ -154,7 +171,6 @@ function triggerSOS(text) {
     sosTimer.innerText = count;
     sosStatusMsg.classList.add("hidden");
     
-    // Reset buttons
     micIcon.innerHTML = '<i class="fa-solid fa-microphone"></i>';
     statusText.textContent = "Ready to listen...";
 
@@ -168,12 +184,11 @@ function triggerSOS(text) {
         }
     }, 1000);
 
-    // If cancelled, proceed to normal analysis
     cancelSosBtn.onclick = () => {
         clearInterval(sosInterval);
         stopBeep();
         sosOverlay.classList.add("hidden");
-        sendToBackend(text); // Proceed with medical analysis anyway
+        sendToBackend(text); 
     };
 }
 
@@ -182,11 +197,9 @@ function activateBeacon() {
     sosTimer.innerHTML = '<i class="fa-solid fa-tower-broadcast"></i>';
     sosOverlay.classList.add("beeping");
     startBeep();
-    // Simulate sending message
     console.log("SOS MESSAGE SENT TO EMERGENCY CONTACTS");
 }
 
-// Sound generator using Web Audio API
 function startBeep() {
     if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     
@@ -194,13 +207,12 @@ function startBeep() {
     const gain = audioCtx.createGain();
     
     osc.type = 'square';
-    osc.frequency.setValueAtTime(880, audioCtx.currentTime); // A5
+    osc.frequency.setValueAtTime(880, audioCtx.currentTime); 
     osc.connect(gain);
     gain.connect(audioCtx.destination);
     
     osc.start();
     
-    // Pulse the gain to create beep effect
     setInterval(() => {
         gain.gain.setValueAtTime(1, audioCtx.currentTime);
         gain.gain.setValueAtTime(0, audioCtx.currentTime + 0.1);
@@ -216,10 +228,11 @@ function stopBeep() {
 }
 
 
-// --- 5. BACKEND COMMUNICATION ---
+// --- 5. BACKEND COMMUNICATION (FIXED RELATIVE PATHS) ---
 async function sendToBackend(text) {
     try {
-        const res = await fetch("http://127.0.0.1:8000/process-text", {
+        // CHANGED: Removed http://127.0.0.1:8000
+        const res = await fetch("/process-text", {
             method: "POST",
             headers: {"Content-Type": "application/json"},
             body: JSON.stringify({ text })
@@ -245,7 +258,6 @@ function showResults(data) {
     recordingView.classList.add("hidden");
     resultView.classList.remove("hidden");
 
-    // Reset Image Upload Section
     uploadPrompt.classList.remove("hidden");
     uploadLoading.classList.add("hidden");
     imageInput.value = ""; 
@@ -283,14 +295,13 @@ function updateTriageUI(triage, suggestion) {
     localStorage.setItem("currentSpecialistName", specName);
 }
 
-// Image Upload Logic
 uploadBtn.addEventListener("click", () => imageInput.click());
 
 imageInput.addEventListener("change", async (e) => {
     if(e.target.files.length === 0) return;
     
     const file = e.target.files[0];
-    const textContext = resTranscript.textContent.replace(/"/g, ""); // Get existing text
+    const textContext = resTranscript.textContent.replace(/"/g, ""); 
     
     uploadPrompt.classList.add("hidden");
     uploadLoading.classList.remove("hidden");
@@ -300,7 +311,8 @@ imageInput.addEventListener("change", async (e) => {
     formData.append("text_context", textContext);
 
     try {
-        const res = await fetch("http://127.0.0.1:8000/process-image", {
+        // CHANGED: Removed http://127.0.0.1:8000
+        const res = await fetch("/process-image", {
             method: "POST",
             body: formData
         });
@@ -322,7 +334,7 @@ imageInput.addEventListener("change", async (e) => {
     }
 });
 
-// --- 7. RESET TO RECORDING ---
+// --- 7. RESET & HISTORY ---
 resetBtn.addEventListener("click", () => {
     localStorage.removeItem("lastAnalysisResult");
     finalDraft = "";
@@ -334,10 +346,10 @@ resetBtn.addEventListener("click", () => {
     recordingView.classList.remove("hidden");
 });
 
-// --- 8. TIMELINE & DELETE ---
 async function loadHistory() {
     try {
-        const res = await fetch("http://127.0.0.1:8000/history");
+        // CHANGED: Removed http://127.0.0.1:8000
+        const res = await fetch("/history");
         const data = await res.json();
         
         timelineList.innerHTML = "";
@@ -370,7 +382,8 @@ async function loadHistory() {
 
 window.deleteEvent = async function(id) {
     try {
-        await fetch("http://127.0.0.1:8000/delete-event", {
+        // CHANGED: Removed http://127.0.0.1:8000
+        await fetch("/delete-event", {
             method: "POST",
             headers: {"Content-Type": "application/json"},
             body: JSON.stringify({ id })
@@ -385,7 +398,8 @@ addHistoryBtn.addEventListener("click", async () => {
     
     addHistoryBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
     
-    await fetch("http://127.0.0.1:8000/add-history", {
+    // CHANGED: Removed http://127.0.0.1:8000
+    await fetch("/add-history", {
         method: "POST",
         headers: {"Content-Type": "application/json"},
         body: JSON.stringify({ text })
@@ -402,7 +416,8 @@ soapBtn.addEventListener("click", async () => {
     soapBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Generating...';
     
     try {
-        const res = await fetch("http://127.0.0.1:8000/generate-soap", { method: "POST" });
+        // CHANGED: Removed http://127.0.0.1:8000
+        const res = await fetch("/generate-soap", { method: "POST" });
         const d = await res.json();
         
         if(d.ok && d.soap_data) {
@@ -445,27 +460,20 @@ function generateReportHTML(data) {
                 :root { --primary: #4f46e5; --dark: #1e293b; --light-gray: #f8fafc; --red: #ef4444; }
                 body { font-family: 'Outfit', sans-serif; background: #e2e8f0; padding: 40px; margin: 0; color: var(--dark); }
                 .page { background: white; max-width: 800px; margin: 0 auto; padding: 50px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border-radius: 8px; }
-                
                 .header { display: flex; justify-content: space-between; border-bottom: 2px solid var(--light-gray); padding-bottom: 20px; margin-bottom: 30px; }
                 .brand { color: var(--primary); font-size: 1.5rem; font-weight: 700; }
                 .date { color: #64748b; font-weight: 500; }
-
                 .summary-box { background: #f1f5f9; padding: 20px; border-left: 5px solid var(--primary); border-radius: 4px; margin-bottom: 30px; font-style: italic; color: #334155; }
-
                 .alert-section { background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 20px; margin-bottom: 30px; animation: pulse 2s infinite; }
                 .alert-header { color: var(--red); font-weight: 800; letter-spacing: 1px; margin-bottom: 10px; font-size: 0.9rem; }
                 .alert-list { margin: 0; padding-left: 20px; color: #991b1b; font-weight: 600; }
                 @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.2); } 70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); } 100% { box-shadow: 0 0 0 0 rgba(0, 0, 0, 0); } }
-
                 .soap-grid { display: grid; grid-template-columns: 1fr; gap: 25px; }
-                
                 .soap-section { border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; }
                 .soap-title { background: var(--primary); color: white; padding: 10px 20px; font-weight: 700; letter-spacing: 1px; font-size: 0.9rem; }
                 .soap-content { padding: 20px; line-height: 1.6; color: #475569; white-space: pre-wrap; }
-
                 .plan-section .soap-title { background: #059669; }
                 .assessment-section .soap-title { background: #0284c7; }
-
                 @media print { body { background: white; padding: 0; } .page { box-shadow: none; } }
             </style>
         </head>
@@ -475,13 +483,10 @@ function generateReportHTML(data) {
                     <div class="brand">MediMind Report</div>
                     <div class="date">Generated: ${new Date().toLocaleString()}</div>
                 </div>
-
                 ${alertHTML}
-
                 <div class="summary-box">
                     <strong>Patient Summary:</strong> ${summary}
                 </div>
-
                 <div class="soap-grid">
                     <div class="soap-section">
                         <div class="soap-title">S - SUBJECTIVE (Symptoms)</div>
@@ -500,7 +505,6 @@ function generateReportHTML(data) {
                         <div class="soap-content">${soap.plan || "Follow up recommended."}</div>
                     </div>
                 </div>
-
                 <div style="margin-top: 40px; text-align: center; color: #94a3b8; font-size: 0.8rem;">
                     Generated by AI Health Companion • Not a replacement for professional medical advice.
                 </div>
