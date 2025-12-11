@@ -10,7 +10,7 @@ from google.genai import types
 from PIL import Image
 
 # --- CONFIGURATION ---
-# SECURITY NOTE: Never hardcode API keys. Set this in Render Environment Variables.
+
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY") 
 DATA_FILE = "data.json"
 MODEL = "gemini-2.0-flash" 
@@ -217,3 +217,4 @@ if __name__ == "__main__":
         save_db({"events": []})
     print("🚑 Backend running on http://0.0.0.0:8000")
     app.run(host="0.0.0.0", port=8000, debug=True)
+
