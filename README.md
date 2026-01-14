@@ -1,3 +1,6 @@
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-Render-blue?style=for-the-badge&logo=render&logoColor=white)](https://medimind-0ciq.onrender.com)
+
+
 # 🚑 MediMind: AI-Powered Clinical Triage & Emergency Companion
 
 ![Python](https://img.shields.io/badge/Python-3.9%2B-3776AB?style=for-the-badge&logo=python&logoColor=white)
@@ -72,4 +75,5 @@ graph TD;
     Context -->|History + New Symptom + Image| AI[OpenAI / LLM API];
     
     AI --> Analysis[Clinical Triage];
+
     Analysis --> UI[Frontend Display];
