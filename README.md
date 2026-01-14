@@ -1,4 +1,15 @@
-[![Live Demo](https://img.shields.io/badge/Live%20Demo-Render-blue?style=for-the-badge&logo=render&logoColor=white)](https://medimind-0ciq.onrender.com)
+<div align="center">
+
+## 🚀 **LIVE DEMO AVAILABLE NOW**
+
+<a href="https://medimind-0ciq.onrender.com" target="_blank">
+  <img src="https://img.shields.io/badge/🔴%20CLICK%20TO%20OPEN-LIVE%20DEMO%20(APP)-ff0000?style=for-the-badge&logo=render&logoColor=white" />
+</a>
+
+👉 **https://medimind-0ciq.onrender.com**
+
+</div>
+
 
 
 # 🚑 MediMind: AI-Powered Clinical Triage & Emergency Companion
@@ -77,3 +88,4 @@ graph TD;
     AI --> Analysis[Clinical Triage];
 
     Analysis --> UI[Frontend Display];
+
