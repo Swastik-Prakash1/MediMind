@@ -13,7 +13,7 @@ from PIL import Image
 # SECURITY NOTE: Never hardcode API keys. Set this in Render Environment Variables.
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY") 
 DATA_FILE = "data.json"
-MODEL = "gemini-3-flash-preview" 
+MODEL = "models/gemini-3-flash-preview" 
 
 client = genai.Client(api_key=GEMINI_API_KEY)
 
